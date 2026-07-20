@@ -7,6 +7,7 @@ from langchain_community.chat_models.tongyi import ChatTongyi
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
 from langchain_ollama import OllamaEmbeddings, ChatOllama
+from langchain_openai import ChatOpenAI
 
 from app.core.logger_handler import logger
 
@@ -73,16 +74,31 @@ class ChatModelFactory(BaseModelFactory):
         if llm_type == "OLLAMA":
             model_name = os.getenv("OLLAMA_MODEL_NAME", os.getenv("OLLAMA_CHAT_MODEL_NAME", "qwen3:7b"))
             base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-            
+
             logger.info(f"📦 ChatModel 使用Ollama模型: {model_name}, 地址: {base_url}")
-            
+
             return ChatOllama(
                 model=model_name,
                 base_url=base_url,
                 streaming=True,
                 top_p=0.7,
             )
-        
+
+        elif llm_type == "DEEPSEEK":
+            model_name = os.getenv("DEEPSEEK_MODEL_NAME", "deepseek-chat")
+            api_key = os.getenv("DEEPSEEK_API_KEY")
+            base_url = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+
+            logger.info(f"📦 ChatModel 使用DeepSeek模型: {model_name}")
+
+            return ChatOpenAI(
+                model=model_name,
+                api_key=api_key,
+                base_url=base_url,
+                streaming=True,
+                top_p=0.7,
+            )
+
         elif llm_type == "ALIYUN":
             model_name = os.getenv("ALIYUN_MODEL_NAME", os.getenv("CHAT_MODEL_NAME", "qwen3-max"))
             api_key = os.getenv("ALIYUN_ACCESS_KEY_SECRET")
@@ -99,7 +115,7 @@ class ChatModelFactory(BaseModelFactory):
             )
         
         else:
-            raise ValueError(f"不支持的LLM_TYPE: {llm_type}，可选值: ALIYUN, OLLAMA")
+            raise ValueError(f"不支持的LLM_TYPE: {llm_type}，可选值: ALIYUN, OLLAMA, DEEPSEEK")
 
 
 class EmbedModelFactory(BaseModelFactory):
